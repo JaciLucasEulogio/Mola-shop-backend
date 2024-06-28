@@ -16,6 +16,7 @@ import com.lucas.request.RatingRequest;
 import com.lucas.service.RatingService;
 import com.lucas.service.UserService;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @RestController
 @RequestMapping("/api/ratings")
+@CrossOrigin
 public class RatingController {
 	@Autowired
 	private UserService userService;
