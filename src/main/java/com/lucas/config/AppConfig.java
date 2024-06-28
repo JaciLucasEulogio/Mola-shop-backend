@@ -29,8 +29,6 @@ public class AppConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class)
-            .httpBasic(httpBasic -> httpBasic.disable()) // Si no necesitas httpBasic
-            .formLogin(formLogin -> formLogin.disable()) // Si no necesitas formLogin
             .build();
     }
 
