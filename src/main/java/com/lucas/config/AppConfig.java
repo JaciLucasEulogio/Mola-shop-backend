@@ -13,7 +13,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -22,41 +23,36 @@ public class AppConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        return http
+            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll())
-            .addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class)
-            .csrf().disable()
-            .cors().configurationSource(corsConfigurationSource())
-            .and()
-            .httpBasic().and().formLogin();
-        
-        return http.build();
+            // Add CORS configuration before authentication filters
+            .cors(cors -> cors.configurationSource(new CorsConfigurationSource() {
+                @Override
+                public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                    CorsConfiguration cfg = new CorsConfiguration();
+                    cfg.setAllowedOrigins(Arrays.asList(
+                        "http://localhost:3000",
+                        "http://localhost:4200",
+                        "https://lucas-e-commerce-final.vercel.app"
+                    ));
+                    cfg.setAllowedMethods(Collections.singletonList("*"));
+                    cfg.setAllowCredentials(true);
+                    cfg.setAllowedHeaders(Collections.singletonList("*"));
+                    cfg.setExposedHeaders(Arrays.asList("Authorization"));
+                    cfg.setMaxAge(3600L);
+                    return cfg;
+                }
+            }))
+            .csrf(csrf -> csrf.disable())
+            .addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class) 
+            .httpBasic(withDefaults())
+            .formLogin(withDefaults())
+            .build();
     }
-    
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://localhost:4200",
-            "https://lucas-e-commerce-final.vercel.app"
-        ));
-        configuration.setAllowedMethods(Collections.singletonList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
-        configuration.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
