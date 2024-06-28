@@ -14,6 +14,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -50,6 +53,23 @@ public class AppConfig {
             }).and().httpBasic().and().formLogin();
         
         return http.build();
+    }
+    
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/producto/**")
+                        .allowedOrigins(
+                                "http://localhost:3000",
+                                "http://localhost:4200",
+                                "https://lucas-e-commerce-final.vercel.app"
+                        )
+                        .allowedMethods("GET", "POST", "PUT", "DELETE")
+                        .maxAge(3600);
+            }
+        };
     }
     
     @Bean
